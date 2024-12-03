@@ -1,29 +1,27 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
-import './components/Filter'
-import './components/Persons'
-import './components/PersonForm'
+
+import personsService from "./services/persons"
+
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 import Filter from './components/Filter'
+import Notification from './components/Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
+  const [errorMessage, setErrorMessage] = useState('some error happened...')
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
+    personsService
+      .getAll()
       .then(response => {
-        console.log('promise fulfilled')
         setPersons(response.data)
       })
   }, [])
-  console.log('render', persons.length, 'persons')
 
   const handleNameChange = (e) => setNewName(e.target.value)
   const handleNumberChange = (e) => setNewNumber(e.target.value)
@@ -36,33 +34,71 @@ const App = () => {
 
     const personObject = {
       name: newName,
-      number: newNumber,
-      id: persons[persons.length - 1].id + 1
+      number: newNumber
     }
 
     if (persons.find(e => e.name === newName)) {
-      alert(`${newName} is already added to phonebook`)
+      const personUpdated = persons.find(person => person.name === newName)
+      if (window.confirm(`Do you want to change ${personUpdated.name} number?`)) {
+        personsService.update(personUpdated.id, personObject)
+          .then((response) => {
+            setPersons(persons.map(person =>
+              person.id === personUpdated.id ? response.data : person
+            ))
+            setNewName('');
+            setNewNumber('');
+          })
+          .catch(error => {
+            setErrorMessage(
+              `Note '${note.content}' was already removed from server`
+            )
+            setTimeout(() => {
+              setErrorMessage(null)
+            }, 5000)
+          })
+      }
     }
     else if (persons.find(e => e.number === newNumber)) {
       alert(`${newNumber} is already added to phonebook`)
     }
     else {
-      setPersons(persons.concat(personObject))
-      setNewName('')
-      setNewNumber('')
+      personsService
+        .create(personObject)
+        .then(response => {
+          setPersons(persons.concat(response.data))
+          setNewName('')
+          setNewNumber('')
+        })
     }
 
+  }
+
+  const deletePerson = (id) => {
+    const personToDelete = persons.find(person => person.id === id)
+    if (window.confirm(`Do you really want to delete ${personToDelete.name}?`)) {
+      personsService.eliminate(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id))
+        })
+        .catch(error => {
+          setErrorMessage(
+            `Contact '${personToDelete.name}' was already removed from server`
+          )
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+        })
+    }
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
-      <div>debug: {newFilter}</div>
+      <Notification message={errorMessage} />
       <Filter
         handleFilterChange={(e) => handleFilterChange(e)}
       ></Filter>
       <h2>Add a New</h2>
-      <div>debug: {newName}</div>
       <PersonForm
         handleNameChange={(e) => handleNameChange(e)}
         handleNumberChange={(e) => handleNumberChange(e)}
@@ -70,7 +106,11 @@ const App = () => {
       >
       </PersonForm>
       <h2>Numbers</h2>
-      <Persons persons={filteredPersons}></Persons>
+      <Persons
+        persons={filteredPersons}
+        deletePerson={(e) => deletePerson(e)}
+      >
+      </Persons>
     </div>
   )
 }
