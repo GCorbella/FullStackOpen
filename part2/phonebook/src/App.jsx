@@ -13,7 +13,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
-  const [errorMessage, setErrorMessage] = useState('some error happened...')
+  const [notificationMessage, setNotificationMessage] = useState('')
 
   useEffect(() => {
     personsService
@@ -45,15 +45,13 @@ const App = () => {
             setPersons(persons.map(person =>
               person.id === personUpdated.id ? response.data : person
             ))
-            setNewName('');
-            setNewNumber('');
-          })
-          .catch(error => {
-            setErrorMessage(
-              `Note '${note.content}' was already removed from server`
+            setNewName('')
+            setNewNumber('')
+            setNotificationMessage(
+              `You have changed '${personUpdated.name}' number succesfully`
             )
             setTimeout(() => {
-              setErrorMessage(null)
+              setNotificationMessage('')
             }, 5000)
           })
       }
@@ -68,6 +66,12 @@ const App = () => {
           setPersons(persons.concat(response.data))
           setNewName('')
           setNewNumber('')
+          setNotificationMessage(
+            `You have added '${personObject.name}' number succesfully`
+          )
+          setTimeout(() => {
+            setNotificationMessage('')
+          }, 5000)
         })
     }
 
@@ -81,11 +85,11 @@ const App = () => {
           setPersons(persons.filter(person => person.id !== id))
         })
         .catch(error => {
-          setErrorMessage(
-            `Contact '${personToDelete.name}' was already removed from server`
+          setNotificationMessage(
+            `Error: Contact '${personToDelete.name}' was already removed from server`
           )
           setTimeout(() => {
-            setErrorMessage(null)
+            setNotificationMessage('')
           }, 5000)
         })
     }
@@ -94,7 +98,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={errorMessage} />
+      <Notification message={notificationMessage} />
       <Filter
         handleFilterChange={(e) => handleFilterChange(e)}
       ></Filter>

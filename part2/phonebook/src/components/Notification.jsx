@@ -8,7 +8,7 @@ const Notification = ({ message }) => {
                 {message}
             </div>
         )
-    } else if (message.includes("dded")) {
+    } else if (message.includes("dded") || message.includes("changed")) {
         return (
             <div className="notification">
                 {message}
