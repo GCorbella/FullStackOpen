@@ -4,6 +4,7 @@ const app = express()
 
 app.use(express.json())
 app.use(morgan('tiny'))
+app.use(express.static('dist'))
 
 let persons = [
     {
@@ -53,9 +54,9 @@ app.get('/api/persons/:id', (request, response) => {
 app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
     persons = persons.filter(person => person.id !== id)
-  
+
     response.status(204).end()
-  })
+})
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -83,7 +84,7 @@ app.post('/api/persons', (request, response) => {
     response.json(person)
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
