@@ -73,6 +73,15 @@ const App = () => {
             setNotificationMessage('')
           }, 5000)
         })
+        .catch(error => {
+          setNotificationMessage(
+            `Error: The name must have at least 3 characters and the number must have the correct format: XXX-XXX* or XX-XXX*`
+          )
+          setTimeout(() => {
+            setNotificationMessage('')
+          }, 50000)
+          console.log(error.response.data.error)
+        })
     }
 
   }
