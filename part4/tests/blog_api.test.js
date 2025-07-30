@@ -44,7 +44,8 @@ describe('adding blogs', () => {
       title: "Test Blog",
       author: "William Griffin",
       url: "testblog.tv",
-      likes: 2
+      likes: 2,
+      userId: "6888f8842c326d594c7dfbc3"
     }
 
     await api
@@ -64,7 +65,8 @@ describe('adding blogs', () => {
     const newBlog = {
       title: "Test Blog",
       author: "William Griffin",
-      url: "testblog.tv"
+      url: "testblog.tv",
+      userId: "6888f8842c326d594c7dfbc3"
     }
 
     await api

@@ -1,9 +1,10 @@
 POST http://localhost:3001/api/blogs/ HTTP/1.1
 content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjY4ODhmODQxYTMxYWU5ZjM4Yjc2Mjk5ZiIsImlhdCI6MTc1Mzg5MTA3M30.8iqkvD1GYTgTb6hZOJdT6mee9-icHHWEhbHm4KWRw8A
 
 {
-    "title": "sample",
-    "author": "Mr. Samppleman",
-    "url": "www.sample.com",
+    "title": "tokeneitor",
+    "author": "Mr. Tokens",
+    "url": "www.tiktokens.com",
     "likes": "123456789"
 }
