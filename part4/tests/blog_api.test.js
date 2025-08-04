@@ -8,16 +8,43 @@ const app = require('../app')
 const api = supertest(app)
 
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 console.log('Testing database:', config.MONGODB_URI);
 
+let authToken
+
 beforeEach(async () => {
+  await User.deleteMany({})
   await Blog.deleteMany({})
 
-  const blogObjects = helper.initialBlogs
-    .map(blog => new Blog(blog))
-  const promiseArray = blogObjects.map(blog => blog.save())
-  await Promise.all(promiseArray)
+  const userObjects = helper.initialUsers.map(user => new User(user))
+  const savedUsers = await User.insertMany(userObjects)
+
+  const userId = savedUsers[0]._id
+
+  const blogObjects = helper.initialBlogs.map((blog, index) => {
+    if (index === 0) {
+      return new Blog({ ...blog, user: userId })
+    } else {
+      return new Blog(blog)
+    }
+  })
+
+  const savedBlogs = await Blog.insertMany(blogObjects)
+
+  savedUsers[0].blogs = savedBlogs.map(b => b._id)
+  await savedUsers[0].save()
+
+
+  const loginResponse = await api
+    .post('/api/login')
+    .send({
+      username: helper.initialUsers[0].username,
+      password: 'pass123'
+    })
+
+  authToken = loginResponse.body.token
 })
 
 describe('returning blogs', () => {
@@ -44,12 +71,12 @@ describe('adding blogs', () => {
       title: "Test Blog",
       author: "William Griffin",
       url: "testblog.tv",
-      likes: 2,
-      userId: "6888f8842c326d594c7dfbc3"
+      likes: 2
     }
 
-    await api
+    const response = await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${authToken}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -71,6 +98,7 @@ describe('adding blogs', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${authToken}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -91,6 +119,7 @@ describe('adding blogs', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${authToken}`)
       .send(newBlog)
       .expect(400)
 
@@ -108,6 +137,7 @@ describe('adding blogs', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${authToken}`)
       .send(newBlog)
       .expect(400)
 
@@ -115,12 +145,34 @@ describe('adding blogs', () => {
 
     assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
   })
+
+  test('a valid blog without token cannot be added ', async () => {
+    const newBlog = {
+      title: "Test Blog",
+      author: "William Griffin",
+      url: "testblog.tv",
+      likes: 2
+    }
+
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+
+    const titles = blogsAtEnd.map(n => n.title)
+    assert(!titles.includes('Test Blog'))
+  })
 })
 
 describe('deleting blogs', () => {
   test('deleting a blog by id', async () => {
     await api
       .delete('/api/blogs/5a422a851b54a676234d17f7')
+      .set('Authorization', `Bearer ${authToken}`)
       .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
@@ -128,6 +180,19 @@ describe('deleting blogs', () => {
     assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
     const ids = blogsAtEnd.map(b => b.id)
     assert(!ids.includes('5a422a851b54a676234d17f7'))
+  })
+
+  test('deleting a blog by id that does not belong to you', async () => {
+
+    const result = await api
+      .delete('/api/blogs/5a422aa71b54a676234d17f8')
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(401)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+    assert(result.body.error.includes('this blog does not belong to you'))
   })
 })
 

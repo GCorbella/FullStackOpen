@@ -1,5 +1,6 @@
 const User = require('../models/user')
 const Blog = require('../models/blog')
+const bcrypt = require('bcrypt')
 
 const usersInDb = async () => {
     const users = await User.find({})
@@ -21,6 +22,26 @@ const initialBlogs = [
         author: "Edsger W. Dijkstra",
         url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
         likes: 5,
+        __v: 0,
+        user: "5f50c31b5c6e3c1a3c3d8c1b"
+    }
+]
+
+const initialUsers = [
+    {
+        _id: '5f50c31b5c6e3c1a3c3d8c1a',
+        username: 'testuser1',
+        name: 'Test User One',
+        passwordHash: bcrypt.hashSync('pass123', 10),
+        blogs: [],
+        __v: 0
+    },
+    {
+        _id: '5f50c31b5c6e3c1a3c3d8c1b',
+        username: 'testuser2',
+        name: 'Test User Two',
+        passwordHash: bcrypt.hashSync('pass456', 10),
+        blogs: [],
         __v: 0
     }
 ]
@@ -45,6 +66,7 @@ const blogsInDb = async () => {
 module.exports = {
     usersInDb,
     initialBlogs,
+    initialUsers,
     nonExistingId,
     blogsInDb
 }
