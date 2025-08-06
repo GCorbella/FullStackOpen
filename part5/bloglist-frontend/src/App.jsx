@@ -5,6 +5,7 @@ import Blog from './components/Blog'
 import Notification from './components/Notification'
 import loginService from './services/login'
 import blogService from './services/blogs'
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -12,11 +13,6 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [blogs, setBlogs] = useState([])
   const [errorMessage, setErrorMessage] = useState(null)
-  const [newBlog, setNewBlog] = useState({
-    title: '',
-    author: '',
-    url: ''
-  })
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
@@ -55,22 +51,13 @@ const App = () => {
     setUser(null)
   }
 
-  const handleBlogChange = (event) => {
-    const { name, value } = event.target
-    setNewBlog({ ...newBlog, [name]: value })
-  }
-
-  const addBlog = async (event) => {
-    event.preventDefault()
+  const addBlog = async (blogObject) => {
     try {
-      const createdBlog = await blogService.create(newBlog)
+      const createdBlog = await blogService.create(blogObject)
       setBlogs(blogs.concat(createdBlog))
-      setNewBlog({ title: '', author: '', url: '' })
-      setErrorMessage(`a new blog "${createdBlog.title}" by "${createdBlog.author}" added`)
-      setTimeout(() => setErrorMessage(null), 4000)
+      return createdBlog 
     } catch (error) {
-      setErrorMessage('Failed to add blog')
-      setTimeout(() => setErrorMessage(null), 4000)
+      throw error 
     }
   }
 
@@ -91,13 +78,14 @@ const App = () => {
       ) : (
         <><div>
           <span>{user.name} logged-in</span> <button onClick={handleLogout}>log out</button>
-          <BlogForm
-            addBlog={addBlog}
-            newBlog={newBlog}
-            handleBlogChange={handleBlogChange}
-          />
+          <Togglable buttonLabel="new blog">
+            <BlogForm
+              createBlog={addBlog}
+              setErrorMessage={setErrorMessage}
+            />
+          </Togglable>
         </div>
-        <h1>blogs</h1>
+          <h1>blogs</h1>
           {blogs.map(blog =>
             <Blog key={blog.id} blog={blog} />
           )}
