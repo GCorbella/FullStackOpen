@@ -5,7 +5,7 @@ const middleware = require('../utils/middleware')
 
 blogsRouter.get('/', async (request, response) => {
     const blogs = await Blog
-        .find({}).populate('user', { username: 1, name: 1 })
+        .find({}).populate('user', { username: 1, name: 1})
 
     response.json(blogs)
 })
@@ -72,21 +72,28 @@ blogsRouter.post('/', middleware.tokenExtractor, middleware.userExtractor, async
     user.blogs = user.blogs.concat(savedBlog._id)
     await user.save()
 
-    response.status(201).json(savedBlog)
+    const populatedBlog = await savedBlog.populate('user', { username: 1, name: 1 })
+
+    response.status(201).json(populatedBlog)
 })
 
 blogsRouter.put('/:id', async (request, response, next) => {
-    const { title, author, url, likes } = request.body
+    const { likes } = request.body
 
-    const updatedBlog = await Blog.findByIdAndUpdate(
-        request.params.id,
-        { title, author, url, likes },
-        { new: true, runValidators: true, context: 'query' }
-    )
-    if (updatedBlog) {
-        response.status(200).json(updatedBlog)
-    } else {
-        response.status(404).end()
+    try {
+        const updatedBlog = await Blog.findByIdAndUpdate(
+            request.params.id,
+            { likes },
+            { new: true, runValidators: true, context: 'query' }
+        ).populate('user', {username: 1, name: 1})
+
+        if (updatedBlog) {
+            response.status(200).json(updatedBlog)
+        } else {
+            response.status(404).end()
+        }
+    } catch (error) {
+        next(error)
     }
 })
 

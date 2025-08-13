@@ -5,7 +5,7 @@ const Notification = ({ message }) => {
     return null
   }
 
-  const isError = message.toLowerCase().includes('rror') || message.includes("rong")
+  const isError = message.toLowerCase().includes('rror') || message.includes('rong')
   const isSuccess = message.toLowerCase().includes('dded') || message.toLowerCase().includes('changed')
 
   const className = isError

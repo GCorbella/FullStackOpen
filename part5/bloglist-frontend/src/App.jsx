@@ -14,15 +14,18 @@ const App = () => {
   const [blogs, setBlogs] = useState([])
   const [errorMessage, setErrorMessage] = useState(null)
 
+  const sortBlogsByLikes = (blogsArray) => [...blogsArray].sort((a, b) => b.likes - a.likes)
+  const updateBlogs = (blogsArray) => { setBlogs(sortBlogsByLikes(blogsArray)) }
+
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
       setUser(user)
       blogService.setToken(user.token)
-      blogService.getAll().then(blogs =>
-        setBlogs(blogs)
-      )
+
+      blogService.getAll()
+        .then(blogs => updateBlogs(blogs))
     }
   }, [])
 
@@ -54,10 +57,32 @@ const App = () => {
   const addBlog = async (blogObject) => {
     try {
       const createdBlog = await blogService.create(blogObject)
-      setBlogs(blogs.concat(createdBlog))
-      return createdBlog 
+      updateBlogs([...blogs, createdBlog])
+      return createdBlog
     } catch (error) {
-      throw error 
+      throw error
+    }
+  }
+
+  const handleLike = async (blog) => {
+    try {
+      const returnedBlog = await blogService.modifyLikes(blog.id, blog.likes + 1)
+      const updatedBlogs = blogs.map(b => b.id === returnedBlog.id ? returnedBlog : b)
+      updateBlogs(updatedBlogs)
+    } catch (error) {
+      setErrorMessage('Error: Failed to update likes')
+      setTimeout(() => setErrorMessage(null), 4000)
+    }
+  }
+
+  const deleteBlog = async (blog) => {
+    try {
+      await blogService.deleteBlog(blog.id)
+      const updatedBlogs = blogs.filter(b => b.id !== blog.id)
+      updateBlogs(updatedBlogs)
+    } catch (error) {
+      setErrorMessage('Error: Failed to delete blog')
+      setTimeout(() => setErrorMessage(null), 4000)
     }
   }
 
@@ -87,7 +112,7 @@ const App = () => {
         </div>
           <h1>blogs</h1>
           {blogs.map(blog =>
-            <Blog key={blog.id} blog={blog} />
+            <Blog key={blog.id} blog={blog} handleLike={handleLike} deleteBlog={deleteBlog} user={user} />
           )}
         </>
       )}
