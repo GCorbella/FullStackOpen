@@ -28,20 +28,20 @@ const BlogForm = ({ createBlog, setErrorMessage }) => {
     }
 
     return (
-        <div>
+        <div className="formDiv">
             <h2>Create new</h2>
             <form onSubmit={addBlog}>
                 <div>
                     <label>Title</label>
-                    <input name="title" value={newBlog.title} onChange={handleBlogChange} />
+                    <input name="title" value={newBlog.title} onChange={handleBlogChange} placeholder='title'/>
                 </div>
                 <div>
                     <label>Author</label>
-                    <input name="author" value={newBlog.author} onChange={handleBlogChange} />
+                    <input name="author" value={newBlog.author} onChange={handleBlogChange} placeholder='author'/>
                 </div>
                 <div>
                     <label>URL</label>
-                    <input name="url" value={newBlog.url} onChange={handleBlogChange} />
+                    <input name="url" value={newBlog.url} onChange={handleBlogChange} placeholder='url'/>
                 </div>
                 <button type="submit">Create</button>
             </form>
