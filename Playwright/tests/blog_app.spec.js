@@ -1,14 +1,27 @@
-const { test, describe, expect } = require('@playwright/test')
-const { beforeEach } = require('node:test')
+const { test, describe, expect, beforeEach } = require('@playwright/test')
+const {loginWith} = require('./helper')
 
 describe('Blog app', () => {
-    beforeEach(async ({ page }) => {
-        await page.goto('http://localhost:5173')
+    beforeEach(async ({ page, request }) => {
+        await request.post('/api/testing/reset')
+        await request.post('/api/users', {
+            data: {
+                name: 'Test User One',
+                username: 'testuser1',
+                password: 'pass123'
+            }
+        })
+        await request.post('/api/users', {
+            data: {
+                name: 'Test User Two',
+                username: 'testuser2',
+                password: 'pass456'
+            }
+        })
+        await page.goto('/')
     })
 
     test('Login form is shown', async ({ page }) => {
-        await page.goto('http://localhost:5173')
-
         const locator = await page.getByText('username')
         await expect(locator).toBeVisible()
         await expect(page.getByText('username')).toBeVisible()
@@ -16,24 +29,12 @@ describe('Blog app', () => {
 
     describe('Login', () => {
         test('succeeds with correct credentials', async ({ page }) => {
-            await page.goto('http://localhost:5173')
-
-            await page.getByTestId('username').fill('testuser1')
-            await page.getByTestId('password').fill('pass123')
-
-            await page.getByRole('button', { name: 'login' }).click()
-
+            await loginWith(page, 'testuser1', 'pass123')
             await expect(page.getByText('Test User One logged-in')).toBeVisible()
         })
 
         test('fails with wrong credentials', async ({ page }) => {
-            await page.goto('http://localhost:5173')
-
-            await page.getByTestId('username').fill('testuser3')
-            await page.getByTestId('password').fill('pass123')
-
-            await page.getByRole('button', { name: 'login' }).click()
-
+            await loginWith(page, 'testuser3', 'pass123')
             await expect(page.getByText('Wrong username or password')).toBeVisible()
         })
     })
