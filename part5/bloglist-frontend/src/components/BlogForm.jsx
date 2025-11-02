@@ -33,15 +33,15 @@ const BlogForm = ({ createBlog, setErrorMessage }) => {
             <form onSubmit={addBlog}>
                 <div>
                     <label>Title</label>
-                    <input name="title" value={newBlog.title} onChange={handleBlogChange} placeholder='title'/>
+                    <input name="title" value={newBlog.title} onChange={handleBlogChange} placeholder='title' data-testid='insTitle'/>
                 </div>
                 <div>
                     <label>Author</label>
-                    <input name="author" value={newBlog.author} onChange={handleBlogChange} placeholder='author'/>
+                    <input name="author" value={newBlog.author} onChange={handleBlogChange} placeholder='author' data-testid='insAuthor'/>
                 </div>
                 <div>
                     <label>URL</label>
-                    <input name="url" value={newBlog.url} onChange={handleBlogChange} placeholder='url'/>
+                    <input name="url" value={newBlog.url} onChange={handleBlogChange} placeholder='url' data-testid='insUrl'/>
                 </div>
                 <button type="submit">Create</button>
             </form>

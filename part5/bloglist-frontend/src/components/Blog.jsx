@@ -34,11 +34,11 @@ const Blog = ({ blog, handleLike, deleteBlog, user }) => {
       <div style={showWhenVisible} className='visibleBlog'>
         <p>{blog.title} by {blog.author}<button onClick={toggleVisibility}>hide</button></p>
         <p>{blog.url}</p>
-        <p>{blog.likes} <button onClick={() => handleLike(blog)}>like</button></p>
+        <p data-testid='likeCounter'>{blog.likes} <button onClick={() => handleLike(blog)}>like</button></p>
         <p>{blog.user?.name}</p>
         {showDeleteButton && (
           <p>
-            <button onClick={confirmAndDelete}>remove</button>
+            <button data-testid='deleteButton' onClick={confirmAndDelete}>remove</button>
           </p>
         )}
       </div>
